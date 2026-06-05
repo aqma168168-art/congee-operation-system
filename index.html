@@ -288,6 +288,32 @@
   .toast.success { background: var(--success); }
   .toast.error { background: var(--error); }
 
+  /* PAGE LOADING MASK */
+  #pageMask {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  #pageMask .mask-spinner {
+    width: 40px; height: 40px;
+    border: 4px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  #pageMask p {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+  }
+
   /* OVERLAY */
   .overlay {
     display: none;
@@ -326,6 +352,12 @@
 </style>
 </head>
 <body>
+
+<!-- 頁面載入遮罩：等待品項成本從 Google Sheet 讀取完成 -->
+<div id="pageMask">
+  <div class="mask-spinner"></div>
+  <p>載入品項資料中...</p>
+</div>
 
 <div class="header">
   <h1>🍠 廢品回報系統</h1>
@@ -373,17 +405,6 @@
         <label>品項 <span class="required">*</span></label>
         <select id="item" onchange="onItemChange()">
           <option value="">請選擇品項</option>
-          <option>鹹粥</option>
-          <option>皮蛋</option>
-          <option>芹菜</option>
-          <option>芋頭</option>
-          <option>濃縮底料</option>
-          <option>菜脯</option>
-          <option>肉鬆</option>
-          <option>紙碗</option>
-          <option>湯匙</option>
-          <option>袋子</option>
-          <option>其他</option>
         </select>
       </div>
 
@@ -488,33 +509,62 @@
 // 請替換成你的 Google Apps Script Web App URL
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3G3I3RwrLpeI1EVFz4EpwNAdWvhYTABr3lNYFHynaBhBn2w2OfaZCOw4zNv_qo_24tw/exec';
 
-// ===================== DATA =====================
-const ITEM_DATA = {
-  '鹹粥':    { unit: '桶',  cost: 600 },
-  '皮蛋':    { unit: '顆',  cost: 7.8 },
-  '芹菜':    { unit: '碗',  cost: 30 },
-  '芋頭':    { unit: '包',  cost: 0 },
-  '濃縮底料':{ unit: '包',  cost: 0 },
-  '菜脯':    { unit: '碗',  cost: 15 },
-  '肉鬆':    { unit: '包',  cost: 5 },
-  '紙碗':    { unit: '個',  cost: 1.65 },
-  '湯匙':    { unit: '支',  cost: 0.15 },
-  '袋子':    { unit: '個',  cost: 0.15 },
-  '其他':    { unit: '',    cost: 0 },
-};
+// ===================== DATA（從 Google Sheet 動態載入）=====================
+let ITEM_DATA = {};
 
 let selectedType = '攤位報廢';
 let photoBase64 = '';
 let photoFileName = '';
 
+// ===================== 載入品項成本 =====================
+async function loadItemCosts() {
+  try {
+    const res = await fetch(GAS_URL + '?action=getItemCosts');
+    const json = await res.json();
+    if (json.status === 'ok' && json.data) {
+      ITEM_DATA = json.data;
+      // 依照 Sheet 順序重建品項下拉選單
+      const sel = document.getElementById('item');
+      sel.innerHTML = '<option value="">請選擇品項</option>';
+      Object.keys(ITEM_DATA).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      });
+    } else {
+      throw new Error('回傳格式異常');
+    }
+  } catch (err) {
+    // 載入失敗時顯示錯誤提示，但仍讓表單可操作
+    console.error('品項成本載入失敗：', err);
+    showToast('品項成本載入失敗，請重新整理頁面', 'error');
+  }
+}
+
 // ===================== INIT =====================
-window.onload = () => {
+window.onload = async () => {
+  // 顯示載入中遮罩
+  showPageLoading(true);
+
+  // 設定今天日期
   const today = new Date();
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth()+1).padStart(2,'0');
   const dd = String(today.getDate()).padStart(2,'0');
   document.getElementById('date').value = `${yyyy}-${mm}-${dd}`;
+
+  // 先從 Google Sheet 載入品項成本，再顯示表單
+  await loadItemCosts();
+
+  showPageLoading(false);
 };
+
+function showPageLoading(show) {
+  let mask = document.getElementById('pageMask');
+  if (!mask) return;
+  mask.style.display = show ? 'flex' : 'none';
+}
 
 // ===================== TYPE TOGGLE =====================
 function selectType(btn) {
