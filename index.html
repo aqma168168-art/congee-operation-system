@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>廢品回報系統 — 芋頭鹹粥</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBF7F0;
+    --card: #FFFFFF;
+    --primary: #C0392B;
+    --primary-light: #E74C3C;
+    --accent: #E67E22;
+    --text: #2C1A0E;
+    --text-muted: #7B5E4A;
+    --border: #E8D5C4;
+    --success: #27AE60;
+    --error: #C0392B;
+    --shadow: 0 4px 24px rgba(44,26,14,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--primary);
+    padding: 20px 16px 16px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(192,57,43,0.3);
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 2px;
+  }
+  .header p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    margin-top: 2px;
+  }
+
+  /* FORM */
+  .form-container {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin: 24px 0 10px;
+    padding-left: 2px;
+  }
+  .section-title:first-child { margin-top: 8px; }
+
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  label .required {
+    color: var(--primary);
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  input[type="date"],
+  input[type="number"],
+  input[type="text"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-family: 'Noto Sans TC', sans-serif;
+    color: var(--text);
+    background: #FDFAF7;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.12);
+    background: #fff;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237B5E4A' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 44px;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  /* TYPE TOGGLE */
+  .type-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .type-btn {
+    padding: 14px 10px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: #FDFAF7;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .type-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(192,57,43,0.3);
+  }
+
+  /* AMOUNT CALC */
+  .amount-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+  }
+  .amount-row .op {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .amount-display {
+    background: linear-gradient(135deg, #FFF3CD, #FFE4B5);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 12px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--accent);
+    min-width: 80px;
+  }
+  .unit-badge {
+    display: inline-block;
+    background: #F0E6DA;
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  /* PHOTO */
+  .photo-upload {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #FDFAF7;
+    position: relative;
+  }
+  .photo-upload:hover {
+    border-color: var(--primary);
+    background: #FFF9F7;
+  }
+  .photo-upload input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .photo-upload .icon { font-size: 32px; margin-bottom: 8px; }
+  .photo-upload p { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+  .photo-preview {
+    display: none;
+    margin-top: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+    max-height: 200px;
+  }
+  .photo-preview img { width: 100%; height: 200px; object-fit: cover; border-radius: 10px; }
+
+  /* SUBMIT */
+  .submit-btn {
+    width: 100%;
+    padding: 18px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    cursor: pointer;
+    margin-top: 24px;
+    transition: all 0.2s;
+    box-shadow: 0 6px 20px rgba(192,57,43,0.35);
+    position: relative;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled {
+    background: #ccc;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  .submit-btn .spinner {
+    display: none;
+    width: 22px; height: 22px;
+    border: 3px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    padding: 16px 28px;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    z-index: 999;
+    transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+    max-width: 320px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--error); }
+
+  /* OVERLAY */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(44,26,14,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .overlay.show { display: flex; }
+  .overlay-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 36px 28px;
+    text-align: center;
+    max-width: 300px;
+    width: 90%;
+    animation: popIn 0.3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .overlay-icon { font-size: 52px; margin-bottom: 12px; }
+  .overlay-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+  .overlay-msg { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+  .overlay-btn {
+    padding: 14px 32px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .overlay-btn.ok { background: var(--success); color: #fff; }
+  .overlay-btn.err { background: var(--error); color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🍠 廢品回報系統</h1>
+  <p>芋頭鹹粥 — 收攤後填寫</p>
+</div>
+
+<div class="form-container">
+
+  <!-- 基本資訊 -->
+  <div class="section-title">📅 基本資訊</div>
+  <div class="card">
+    <div class="field-group">
+      <div class="field">
+        <label>日期 <span class="required">*</span></label>
+        <input type="date" id="date">
+      </div>
+
+      <div class="field">
+        <label>類型 <span class="required">*</span></label>
+        <div class="type-toggle">
+          <button class="type-btn active" data-val="攤位報廢" onclick="selectType(this)">🏪 攤位報廢</button>
+          <button class="type-btn" data-val="廚房報廢" onclick="selectType(this)">🍳 廚房報廢</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>攤位 / 地點 <span class="required">*</span></label>
+        <select id="location">
+          <option value="">請選擇攤位</option>
+          <option>新莊</option>
+          <option>樹林</option>
+          <option>三峽</option>
+          <option>大湳</option>
+          <option>廚房</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 品項資訊 -->
+  <div class="section-title">📦 品項資訊</div>
+  <div class="card">
+    <div class="field-group">
+      <div class="field">
+        <label>品項 <span class="required">*</span></label>
+        <select id="item" onchange="onItemChange()">
+          <option value="">請選擇品項</option>
+          <option>鹹粥</option>
+          <option>皮蛋</option>
+          <option>芹菜</option>
+          <option>芋頭</option>
+          <option>濃縮底料</option>
+          <option>菜脯</option>
+          <option>肉鬆</option>
+          <option>紙碗</option>
+          <option>湯匙</option>
+          <option>袋子</option>
+          <option>其他</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>報廢數量 <span class="required">*</span></label>
+        <input type="number" id="qty" min="0" step="0.1" placeholder="0" oninput="calcAmount()">
+        <div class="unit-badge" id="unit-display">— 請先選擇品項 —</div>
+      </div>
+
+      <div class="field">
+        <label>單位成本（元）</label>
+        <input type="number" id="cost" min="0" step="0.01" placeholder="0.00" oninput="calcAmount()">
+      </div>
+
+      <div class="field">
+        <label>報廢金額</label>
+        <div class="amount-display" id="amount-display">$0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 原因 -->
+  <div class="section-title">❓ 報廢原因</div>
+  <div class="card">
+    <div class="field-group">
+      <div class="field">
+        <label>原因 <span class="required">*</span></label>
+        <select id="reason">
+          <option value="">請選擇原因</option>
+          <optgroup label="🥣 食材問題">
+            <option>備貨過多</option>
+            <option>天氣影響</option>
+            <option>客流不足</option>
+            <option>沒賣完</option>
+            <option>發黃</option>
+            <option>受潮</option>
+            <option>過期</option>
+            <option>變質</option>
+          </optgroup>
+          <optgroup label="⚠️ 意外損失">
+            <option>摔破</option>
+            <option>打翻</option>
+            <option>操作失誤</option>
+          </optgroup>
+          <optgroup label="🔧 設備問題">
+            <option>冷藏故障</option>
+            <option>保溫異常</option>
+          </optgroup>
+          <option>其他</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 填報人 & 備註 -->
+  <div class="section-title">👤 填報資訊</div>
+  <div class="card">
+    <div class="field-group">
+      <div class="field">
+        <label>填報人 <span class="required">*</span></label>
+        <input type="text" id="reporter" placeholder="輸入姓名">
+      </div>
+      <div class="field">
+        <label>備註</label>
+        <textarea id="note" placeholder="額外說明（選填）"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 照片 -->
+  <div class="section-title">📷 照片上傳</div>
+  <div class="card">
+    <div class="photo-upload" id="photoUploadArea">
+      <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="onPhotoChange()">
+      <div class="icon">📸</div>
+      <p>點此拍照 或 上傳圖片</p>
+    </div>
+    <div class="photo-preview" id="photoPreview">
+      <img id="photoImg" src="" alt="預覽">
+    </div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="submitForm()">
+    <span id="btnText">送　出　回　報</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+
+</div>
+
+<!-- Success / Error Overlay -->
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-icon" id="overlayIcon"></div>
+    <div class="overlay-title" id="overlayTitle"></div>
+    <div class="overlay-msg" id="overlayMsg"></div>
+    <button class="overlay-btn" id="overlayBtn" onclick="closeOverlay()"></button>
+  </div>
+</div>
+
+<script>
+// ===================== CONFIG =====================
+// 請替換成你的 Google Apps Script Web App URL
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbz0pW78ZKcok-lYgjB5Eiy-xiBpX9BetcMq7RVVDT9u2WR_odE007LkDVw1uRlFay5k/exec';
+
+// ===================== DATA =====================
+const ITEM_DATA = {
+  '鹹粥':    { unit: '桶',  cost: 600 },
+  '皮蛋':    { unit: '顆',  cost: 7.8 },
+  '芹菜':    { unit: '碗',  cost: 30 },
+  '芋頭':    { unit: '包',  cost: 0 },
+  '濃縮底料':{ unit: '包',  cost: 0 },
+  '菜脯':    { unit: '碗',  cost: 15 },
+  '肉鬆':    { unit: '包',  cost: 5 },
+  '紙碗':    { unit: '個',  cost: 1.65 },
+  '湯匙':    { unit: '支',  cost: 0.15 },
+  '袋子':    { unit: '個',  cost: 0.15 },
+  '其他':    { unit: '',    cost: 0 },
+};
+
+let selectedType = '攤位報廢';
+let photoBase64 = '';
+let photoFileName = '';
+
+// ===================== INIT =====================
+window.onload = () => {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth()+1).padStart(2,'0');
+  const dd = String(today.getDate()).padStart(2,'0');
+  document.getElementById('date').value = `${yyyy}-${mm}-${dd}`;
+};
+
+// ===================== TYPE TOGGLE =====================
+function selectType(btn) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedType = btn.dataset.val;
+}
+
+// ===================== ITEM CHANGE =====================
+function onItemChange() {
+  const item = document.getElementById('item').value;
+  const data = ITEM_DATA[item];
+  if (data) {
+    document.getElementById('unit-display').textContent = data.unit ? `單位：${data.unit}` : '—';
+    document.getElementById('cost').value = data.cost;
+    calcAmount();
+  } else {
+    document.getElementById('unit-display').textContent = '— 請先選擇品項 —';
+    document.getElementById('cost').value = '';
+    document.getElementById('amount-display').textContent = '$0.00';
+  }
+}
+
+function calcAmount() {
+  const qty = parseFloat(document.getElementById('qty').value) || 0;
+  const cost = parseFloat(document.getElementById('cost').value) || 0;
+  const amount = qty * cost;
+  document.getElementById('amount-display').textContent = '$' + amount.toFixed(2);
+}
+
+// ===================== PHOTO =====================
+function onPhotoChange() {
+  const file = document.getElementById('photoInput').files[0];
+  if (!file) return;
+  photoFileName = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoBase64 = e.target.result;
+    document.getElementById('photoImg').src = photoBase64;
+    document.getElementById('photoPreview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===================== SUBMIT =====================
+async function submitForm() {
+  // Validate
+  const fields = {
+    '日期': document.getElementById('date').value,
+    '攤位/地點': document.getElementById('location').value,
+    '品項': document.getElementById('item').value,
+    '報廢數量': document.getElementById('qty').value,
+    '原因': document.getElementById('reason').value,
+    '填報人': document.getElementById('reporter').value,
+  };
+  for (const [name, val] of Object.entries(fields)) {
+    if (!val) {
+      showToast(`請填寫「${name}」`, 'error');
+      return;
+    }
+  }
+
+  const item = document.getElementById('item').value;
+  const qty = parseFloat(document.getElementById('qty').value);
+  const cost = parseFloat(document.getElementById('cost').value) || 0;
+  const unit = ITEM_DATA[item]?.unit || '';
+
+  const payload = {
+    date: document.getElementById('date').value,
+    type: selectedType,
+    location: document.getElementById('location').value,
+    item: item,
+    qty: qty,
+    unit: unit,
+    cost: cost,
+    amount: qty * cost,
+    reason: document.getElementById('reason').value,
+    reporter: document.getElementById('reporter').value,
+    note: document.getElementById('note').value,
+    photo: photoBase64,
+    photoName: photoFileName,
+  };
+
+  // UI loading
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  document.getElementById('btnText').style.display = 'none';
+  document.getElementById('spinner').style.display = 'block';
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    showOverlay('success');
+    resetForm();
+  } catch (err) {
+    showOverlay('error');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('btnText').style.display = 'block';
+    document.getElementById('spinner').style.display = 'none';
+  }
+}
+
+function resetForm() {
+  document.getElementById('location').value = '';
+  document.getElementById('item').value = '';
+  document.getElementById('qty').value = '';
+  document.getElementById('cost').value = '';
+  document.getElementById('reason').value = '';
+  document.getElementById('reporter').value = '';
+  document.getElementById('note').value = '';
+  document.getElementById('amount-display').textContent = '$0.00';
+  document.getElementById('unit-display').textContent = '— 請先選擇品項 —';
+  document.getElementById('photoPreview').style.display = 'none';
+  document.getElementById('photoInput').value = '';
+  photoBase64 = '';
+  photoFileName = '';
+}
+
+function showOverlay(type) {
+  const icon = document.getElementById('overlayIcon');
+  const title = document.getElementById('overlayTitle');
+  const msg = document.getElementById('overlayMsg');
+  const btn = document.getElementById('overlayBtn');
+  if (type === 'success') {
+    icon.textContent = '✅';
+    title.textContent = '送出成功！';
+    msg.textContent = '已成功送出廢品紀錄，謝謝你的回報 🙏';
+    btn.textContent = '再填一筆';
+    btn.className = 'overlay-btn ok';
+  } else {
+    icon.textContent = '❌';
+    title.textContent = '送出失敗';
+    msg.textContent = '送出失敗，請重新送出或通知老闆。';
+    btn.textContent = '關閉';
+    btn.className = 'overlay-btn err';
+  }
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function showToast(msg, type) {
+  let t = document.querySelector('.toast');
+  if (t) t.remove();
+  t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
+}
+</script>
+</body>
+</html>
