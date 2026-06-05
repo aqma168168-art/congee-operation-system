@@ -27,7 +27,57 @@
     min-height: 100vh;
   }
 
-  /* HEADER */
+  /* ── PAGE LOADING MASK ── */
+  #pageMask {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: opacity 0.3s;
+  }
+  #pageMask.hidden { opacity: 0; pointer-events: none; }
+  .mask-logo { font-size: 48px; }
+  .mask-spinner {
+    width: 40px; height: 40px;
+    border: 4px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  #maskMsg {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+  }
+  #maskError {
+    display: none;
+    background: #FFF0EE;
+    border: 2px solid var(--error);
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+    max-width: 280px;
+  }
+  #maskError p { font-size: 13px; color: var(--error); font-weight: 700; margin-bottom: 12px; }
+  #maskRetryBtn {
+    padding: 10px 24px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* ── HEADER ── */
   .header {
     background: var(--primary);
     padding: 20px 16px 16px;
@@ -37,19 +87,10 @@
     z-index: 100;
     box-shadow: 0 2px 12px rgba(192,57,43,0.3);
   }
-  .header h1 {
-    font-size: 22px;
-    font-weight: 900;
-    color: #fff;
-    letter-spacing: 2px;
-  }
-  .header p {
-    font-size: 13px;
-    color: rgba(255,255,255,0.8);
-    margin-top: 2px;
-  }
+  .header h1 { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: 2px; }
+  .header p  { font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 2px; }
 
-  /* FORM */
+  /* ── FORM ── */
   .form-container {
     max-width: 520px;
     margin: 0 auto;
@@ -76,17 +117,8 @@
     margin-bottom: 4px;
   }
 
-  .field-group {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
+  .field-group { display: flex; flex-direction: column; gap: 16px; }
+  .field       { display: flex; flex-direction: column; gap: 6px; }
 
   label {
     font-size: 14px;
@@ -96,11 +128,7 @@
     align-items: center;
     gap: 6px;
   }
-  label .required {
-    color: var(--primary);
-    font-size: 16px;
-    line-height: 1;
-  }
+  label .required { color: var(--primary); font-size: 16px; line-height: 1; }
 
   input[type="date"],
   input[type="number"],
@@ -131,17 +159,23 @@
     background-position: right 14px center;
     padding-right: 44px;
   }
-  textarea {
-    resize: vertical;
-    min-height: 80px;
-  }
+  select:disabled { opacity: 0.5; cursor: not-allowed; }
+  textarea { resize: vertical; min-height: 80px; }
 
-  /* TYPE TOGGLE */
-  .type-toggle {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  /* ── 品項載入狀態提示 ── */
+  .item-status {
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    display: none;
   }
+  .item-status.loading { display: block; color: var(--text-muted); background: #F5EDE4; }
+  .item-status.error   { display: block; color: var(--error); background: #FFF0EE; }
+  .item-status.ok      { display: none; }
+
+  /* ── TYPE TOGGLE ── */
+  .type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .type-btn {
     padding: 14px 10px;
     border: 2px solid var(--border);
@@ -162,19 +196,21 @@
     box-shadow: 0 4px 12px rgba(192,57,43,0.3);
   }
 
-  /* AMOUNT CALC */
-  .amount-row {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr auto 1fr;
-    align-items: center;
-    gap: 8px;
-  }
-  .amount-row .op {
-    font-size: 22px;
-    font-weight: 900;
+  /* ── 類別 badge（品項下拉旁）── */
+  .category-badge {
+    display: none;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: #EDE0D5;
     color: var(--text-muted);
-    text-align: center;
+    margin-top: 4px;
+    align-self: flex-start;
   }
+  .category-badge.show { display: inline-block; }
+
+  /* ── AMOUNT CALC ── */
   .amount-display {
     background: linear-gradient(135deg, #FFF3CD, #FFE4B5);
     border: 2px solid var(--accent);
@@ -184,7 +220,6 @@
     font-size: 18px;
     font-weight: 900;
     color: var(--accent);
-    min-width: 80px;
   }
   .unit-badge {
     display: inline-block;
@@ -198,7 +233,7 @@
     text-align: center;
   }
 
-  /* PHOTO */
+  /* ── PHOTO ── */
   .photo-upload {
     border: 2px dashed var(--border);
     border-radius: 12px;
@@ -209,30 +244,17 @@
     background: #FDFAF7;
     position: relative;
   }
-  .photo-upload:hover {
-    border-color: var(--primary);
-    background: #FFF9F7;
-  }
+  .photo-upload:hover { border-color: var(--primary); background: #FFF9F7; }
   .photo-upload input[type="file"] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    width: 100%; height: 100%;
   }
   .photo-upload .icon { font-size: 32px; margin-bottom: 8px; }
   .photo-upload p { font-size: 14px; color: var(--text-muted); font-weight: 500; }
-  .photo-preview {
-    display: none;
-    margin-top: 12px;
-    border-radius: 10px;
-    overflow: hidden;
-    max-height: 200px;
-  }
+  .photo-preview { display: none; margin-top: 12px; border-radius: 10px; overflow: hidden; }
   .photo-preview img { width: 100%; height: 200px; object-fit: cover; border-radius: 10px; }
 
-  /* SUBMIT */
+  /* ── SUBMIT ── */
   .submit-btn {
     width: 100%;
     padding: 18px;
@@ -248,14 +270,9 @@
     margin-top: 24px;
     transition: all 0.2s;
     box-shadow: 0 6px 20px rgba(192,57,43,0.35);
-    position: relative;
   }
   .submit-btn:active { transform: scale(0.98); }
-  .submit-btn:disabled {
-    background: #ccc;
-    box-shadow: none;
-    cursor: not-allowed;
-  }
+  .submit-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
   .submit-btn .spinner {
     display: none;
     width: 22px; height: 22px;
@@ -267,7 +284,7 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* TOAST */
+  /* ── TOAST ── */
   .toast {
     position: fixed;
     bottom: 30px;
@@ -286,35 +303,9 @@
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.success { background: var(--success); }
-  .toast.error { background: var(--error); }
+  .toast.error   { background: var(--error); }
 
-  /* PAGE LOADING MASK */
-  #pageMask {
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    z-index: 500;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-  }
-  #pageMask .mask-spinner {
-    width: 40px; height: 40px;
-    border: 4px solid var(--border);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  #pageMask p {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-muted);
-    letter-spacing: 2px;
-  }
-
-  /* OVERLAY */
+  /* ── OVERLAY ── */
   .overlay {
     display: none;
     position: fixed;
@@ -335,9 +326,9 @@
     animation: popIn 0.3s cubic-bezier(.34,1.56,.64,1);
   }
   @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  .overlay-icon { font-size: 52px; margin-bottom: 12px; }
+  .overlay-icon  { font-size: 52px; margin-bottom: 12px; }
   .overlay-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
-  .overlay-msg { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+  .overlay-msg   { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
   .overlay-btn {
     padding: 14px 32px;
     border: none;
@@ -347,16 +338,23 @@
     font-weight: 700;
     cursor: pointer;
   }
-  .overlay-btn.ok { background: var(--success); color: #fff; }
-  .overlay-btn.err { background: var(--error); color: #fff; }
+  .overlay-btn.ok  { background: var(--success); color: #fff; }
+  .overlay-btn.err { background: var(--error);   color: #fff; }
 </style>
 </head>
 <body>
 
-<!-- 頁面載入遮罩：等待品項成本從 Google Sheet 讀取完成 -->
+<!-- ══════════════════════════════════════
+     頁面載入遮罩：等待品項主檔從 Google Sheet 讀取
+     ══════════════════════════════════════ -->
 <div id="pageMask">
+  <div class="mask-logo">🍠</div>
   <div class="mask-spinner"></div>
-  <p>載入品項資料中...</p>
+  <div id="maskMsg">載入品項資料中...</div>
+  <div id="maskError">
+    <p id="maskErrorMsg">品項資料載入失敗<br>請確認網路連線後重試</p>
+    <button id="maskRetryBtn" onclick="retryLoad()">🔄 重新載入</button>
+  </div>
 </div>
 
 <div class="header">
@@ -370,6 +368,7 @@
   <div class="section-title">📅 基本資訊</div>
   <div class="card">
     <div class="field-group">
+
       <div class="field">
         <label>日期 <span class="required">*</span></label>
         <input type="date" id="date">
@@ -379,7 +378,7 @@
         <label>類型 <span class="required">*</span></label>
         <div class="type-toggle">
           <button class="type-btn active" data-val="攤位報廢" onclick="selectType(this)">🏪 攤位報廢</button>
-          <button class="type-btn" data-val="廚房報廢" onclick="selectType(this)">🍳 廚房報廢</button>
+          <button class="type-btn"        data-val="廚房報廢" onclick="selectType(this)">🍳 廚房報廢</button>
         </div>
       </div>
 
@@ -394,6 +393,7 @@
           <option>廚房</option>
         </select>
       </div>
+
     </div>
   </div>
 
@@ -401,11 +401,17 @@
   <div class="section-title">📦 品項資訊</div>
   <div class="card">
     <div class="field-group">
+
       <div class="field">
         <label>品項 <span class="required">*</span></label>
-        <select id="item" onchange="onItemChange()">
-          <option value="">請選擇品項</option>
+        <!-- 品項選單由 JS 動態產生，內容來自 Google Sheet 品項成本工作表 -->
+        <select id="item" onchange="onItemChange()" disabled>
+          <option value="">載入中...</option>
         </select>
+        <!-- 顯示從 Sheet 讀到的類別（主商品 / 配料 / 耗材）-->
+        <span class="category-badge" id="categoryBadge"></span>
+        <!-- 載入狀態提示 -->
+        <div class="item-status loading" id="itemStatus">⏳ 正在從 Google Sheet 讀取品項...</div>
       </div>
 
       <div class="field">
@@ -415,7 +421,7 @@
       </div>
 
       <div class="field">
-        <label>單位成本（元）</label>
+        <label>單位成本（元）<span style="font-size:11px;color:var(--text-muted);font-weight:400;">可手動修改</span></label>
         <input type="number" id="cost" min="0" step="0.01" placeholder="0.00" oninput="calcAmount()">
       </div>
 
@@ -423,6 +429,7 @@
         <label>報廢金額</label>
         <div class="amount-display" id="amount-display">$0.00</div>
       </div>
+
     </div>
   </div>
 
@@ -505,97 +512,217 @@
 </div>
 
 <script>
-// ===================== CONFIG =====================
-// 請替換成你的 Google Apps Script Web App URL
+// ══════════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════════
+// ★ 請替換成你的 Google Apps Script Web App URL
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3G3I3RwrLpeI1EVFz4EpwNAdWvhYTABr3lNYFHynaBhBn2w2OfaZCOw4zNv_qo_24tw/exec';
 
-// ===================== DATA（從 Google Sheet 動態載入）=====================
+// ══════════════════════════════════════════════════════════
+//  品項主檔（從 Google Sheet 動態載入，不再寫死）
+//  結構：{ 品項名: { unit, cost, category } }
+// ══════════════════════════════════════════════════════════
 let ITEM_DATA = {};
 
-let selectedType = '攤位報廢';
-let photoBase64 = '';
+let selectedType  = '攤位報廢';
+let photoBase64   = '';
 let photoFileName = '';
 
-// ===================== 載入品項成本 =====================
+// ══════════════════════════════════════════════════════════
+//  初始化：從 Google Sheet 讀取品項主檔後再顯示表單
+// ══════════════════════════════════════════════════════════
+window.onload = async () => {
+  setToday();
+  await loadItemCosts();
+};
+
+function setToday() {
+  const today = new Date();
+  const yyyy  = today.getFullYear();
+  const mm    = String(today.getMonth() + 1).padStart(2, '0');
+  const dd    = String(today.getDate()).padStart(2, '0');
+  document.getElementById('date').value = `${yyyy}-${mm}-${dd}`;
+}
+
+// ══════════════════════════════════════════════════════════
+//  loadItemCosts：向 GAS 請求品項主檔
+//  - 只回傳啟用=TRUE 的品項
+//  - 依 Sheet 順序填入下拉選單
+//  - 支援「類別」分組顯示（optgroup）
+// ══════════════════════════════════════════════════════════
 async function loadItemCosts() {
+  showMask(true, '載入品項資料中...');
+
   try {
-    const res = await fetch(GAS_URL + '?action=getItemCosts');
+    const res  = await fetch(GAS_URL + '?action=getItemCosts', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
     const json = await res.json();
-    if (json.status === 'ok' && json.data) {
-      ITEM_DATA = json.data;
-      // 依照 Sheet 順序重建品項下拉選單
-      const sel = document.getElementById('item');
-      sel.innerHTML = '<option value="">請選擇品項</option>';
-      Object.keys(ITEM_DATA).forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        sel.appendChild(opt);
-      });
-    } else {
-      throw new Error('回傳格式異常');
+    if (json.status !== 'ok') throw new Error(json.message || '回傳格式異常');
+
+    ITEM_DATA = json.data || {};
+
+    if (Object.keys(ITEM_DATA).length === 0) {
+      throw new Error('品項主檔是空的，請在 Google Sheet「品項成本」工作表新增資料');
     }
+
+    buildItemSelect(ITEM_DATA);
+
+    // 更新狀態
+    const count = Object.keys(ITEM_DATA).length;
+    setItemStatus('ok', `已載入 ${count} 個品項`);
+
+    // 隱藏遮罩
+    showMask(false);
+
   } catch (err) {
-    // 載入失敗時顯示錯誤提示，但仍讓表單可操作
-    console.error('品項成本載入失敗：', err);
-    showToast('品項成本載入失敗，請重新整理頁面', 'error');
+    console.error('[loadItemCosts]', err);
+    showMaskError('品項資料載入失敗\n' + err.message);
   }
 }
 
-// ===================== INIT =====================
-window.onload = async () => {
-  // 顯示載入中遮罩
-  showPageLoading(true);
+// ══════════════════════════════════════════════════════════
+//  buildItemSelect：依類別建立分組下拉選單
+// ══════════════════════════════════════════════════════════
+function buildItemSelect(data) {
+  const sel = document.getElementById('item');
+  sel.innerHTML = '<option value="">請選擇品項</option>';
 
-  // 設定今天日期
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth()+1).padStart(2,'0');
-  const dd = String(today.getDate()).padStart(2,'0');
-  document.getElementById('date').value = `${yyyy}-${mm}-${dd}`;
+  // 依類別分組
+  const groups = {};
+  Object.entries(data).forEach(([name, info]) => {
+    const cat = info.category || '其他';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(name);
+  });
 
-  // 先從 Google Sheet 載入品項成本，再顯示表單
-  await loadItemCosts();
+  const catCount = Object.keys(groups).length;
 
-  showPageLoading(false);
-};
+  if (catCount <= 1) {
+    // 只有一個類別，直接列出不分組
+    Object.keys(data).forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  } else {
+    // 多個類別，用 optgroup 分組
+    Object.entries(groups).forEach(([cat, names]) => {
+      const grp = document.createElement('optgroup');
+      grp.label = cat;
+      names.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        grp.appendChild(opt);
+      });
+      sel.appendChild(grp);
+    });
+  }
 
-function showPageLoading(show) {
-  let mask = document.getElementById('pageMask');
-  if (!mask) return;
-  mask.style.display = show ? 'flex' : 'none';
+  sel.disabled = false;
 }
 
-// ===================== TYPE TOGGLE =====================
+// ══════════════════════════════════════════════════════════
+//  遮罩控制
+// ══════════════════════════════════════════════════════════
+function showMask(show, msg) {
+  const mask    = document.getElementById('pageMask');
+  const spinner = mask.querySelector('.mask-spinner');
+  const msgEl   = document.getElementById('maskMsg');
+  const errEl   = document.getElementById('maskError');
+
+  if (show) {
+    mask.classList.remove('hidden');
+    spinner.style.display = 'block';
+    msgEl.style.display   = 'block';
+    errEl.style.display   = 'none';
+    if (msg) msgEl.textContent = msg;
+  } else {
+    mask.classList.add('hidden');
+    setTimeout(() => { mask.style.display = 'none'; }, 350);
+  }
+}
+
+function showMaskError(msg) {
+  const mask    = document.getElementById('pageMask');
+  const spinner = mask.querySelector('.mask-spinner');
+  const msgEl   = document.getElementById('maskMsg');
+  const errEl   = document.getElementById('maskError');
+  const errMsg  = document.getElementById('maskErrorMsg');
+
+  mask.classList.remove('hidden');
+  spinner.style.display = 'none';
+  msgEl.style.display   = 'none';
+  errEl.style.display   = 'block';
+  errMsg.textContent    = msg;
+}
+
+async function retryLoad() {
+  document.getElementById('maskError').style.display = 'none';
+  await loadItemCosts();
+}
+
+function setItemStatus(state, msg) {
+  const el = document.getElementById('itemStatus');
+  el.className = 'item-status ' + state;
+  el.textContent = msg;
+}
+
+// ══════════════════════════════════════════════════════════
+//  TYPE TOGGLE
+// ══════════════════════════════════════════════════════════
 function selectType(btn) {
   document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   selectedType = btn.dataset.val;
 }
 
-// ===================== ITEM CHANGE =====================
+// ══════════════════════════════════════════════════════════
+//  品項選擇：從 ITEM_DATA 帶出單位、成本、類別
+// ══════════════════════════════════════════════════════════
 function onItemChange() {
-  const item = document.getElementById('item').value;
-  const data = ITEM_DATA[item];
-  if (data) {
-    document.getElementById('unit-display').textContent = data.unit ? `單位：${data.unit}` : '—';
-    document.getElementById('cost').value = data.cost;
+  const itemName   = document.getElementById('item').value;
+  const info       = ITEM_DATA[itemName];
+  const badge      = document.getElementById('categoryBadge');
+  const unitEl     = document.getElementById('unit-display');
+  const costEl     = document.getElementById('cost');
+  const amountEl   = document.getElementById('amount-display');
+
+  if (info) {
+    unitEl.textContent   = info.unit ? `單位：${info.unit}` : '—';
+    costEl.value         = info.cost;
+
+    // 顯示類別 badge
+    if (info.category) {
+      badge.textContent = info.category;
+      badge.classList.add('show');
+    } else {
+      badge.classList.remove('show');
+    }
+
     calcAmount();
   } else {
-    document.getElementById('unit-display').textContent = '— 請先選擇品項 —';
-    document.getElementById('cost').value = '';
-    document.getElementById('amount-display').textContent = '$0.00';
+    unitEl.textContent = '— 請先選擇品項 —';
+    costEl.value       = '';
+    amountEl.textContent = '$0.00';
+    badge.classList.remove('show');
   }
 }
 
+// ══════════════════════════════════════════════════════════
+//  計算報廢金額
+// ══════════════════════════════════════════════════════════
 function calcAmount() {
-  const qty = parseFloat(document.getElementById('qty').value) || 0;
-  const cost = parseFloat(document.getElementById('cost').value) || 0;
-  const amount = qty * cost;
-  document.getElementById('amount-display').textContent = '$' + amount.toFixed(2);
+  const qty    = parseFloat(document.getElementById('qty').value)  || 0;
+  const cost   = parseFloat(document.getElementById('cost').value) || 0;
+  document.getElementById('amount-display').textContent = '$' + (qty * cost).toFixed(2);
 }
 
-// ===================== PHOTO =====================
+// ══════════════════════════════════════════════════════════
+//  照片處理
+// ══════════════════════════════════════════════════════════
 function onPhotoChange() {
   const file = document.getElementById('photoInput').files[0];
   if (!file) return;
@@ -609,57 +736,56 @@ function onPhotoChange() {
   reader.readAsDataURL(file);
 }
 
-// ===================== SUBMIT =====================
+// ══════════════════════════════════════════════════════════
+//  送出表單
+// ══════════════════════════════════════════════════════════
 async function submitForm() {
-  // Validate
+  // 驗證必填欄位
   const fields = {
-    '日期': document.getElementById('date').value,
+    '日期':     document.getElementById('date').value,
     '攤位/地點': document.getElementById('location').value,
-    '品項': document.getElementById('item').value,
+    '品項':     document.getElementById('item').value,
     '報廢數量': document.getElementById('qty').value,
-    '原因': document.getElementById('reason').value,
-    '填報人': document.getElementById('reporter').value,
+    '原因':     document.getElementById('reason').value,
+    '填報人':   document.getElementById('reporter').value,
   };
   for (const [name, val] of Object.entries(fields)) {
-    if (!val) {
-      showToast(`請填寫「${name}」`, 'error');
-      return;
-    }
+    if (!val) { showToast(`請填寫「${name}」`, 'error'); return; }
   }
 
-  const item = document.getElementById('item').value;
-  const qty = parseFloat(document.getElementById('qty').value);
-  const cost = parseFloat(document.getElementById('cost').value) || 0;
-  const unit = ITEM_DATA[item]?.unit || '';
+  const itemName = document.getElementById('item').value;
+  const qty      = parseFloat(document.getElementById('qty').value);
+  const cost     = parseFloat(document.getElementById('cost').value) || 0;
+  const unit     = ITEM_DATA[itemName]?.unit || '';
 
   const payload = {
-    date: document.getElementById('date').value,
-    type: selectedType,
+    date:     document.getElementById('date').value,
+    type:     selectedType,
     location: document.getElementById('location').value,
-    item: item,
-    qty: qty,
-    unit: unit,
-    cost: cost,
-    amount: qty * cost,
-    reason: document.getElementById('reason').value,
+    item:     itemName,
+    qty,
+    unit,
+    cost,
+    amount:   qty * cost,
+    reason:   document.getElementById('reason').value,
     reporter: document.getElementById('reporter').value,
-    note: document.getElementById('note').value,
-    photo: photoBase64,
+    note:     document.getElementById('note').value,
+    photo:    photoBase64,
     photoName: photoFileName,
   };
 
-  // UI loading
+  // 顯示送出中 UI
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
   document.getElementById('btnText').style.display = 'none';
   document.getElementById('spinner').style.display = 'block';
 
   try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
+    await fetch(GAS_URL, {
+      method:  'POST',
+      mode:    'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body:    JSON.stringify(payload),
     });
     showOverlay('success');
     resetForm();
@@ -672,39 +798,47 @@ async function submitForm() {
   }
 }
 
+// ══════════════════════════════════════════════════════════
+//  重置表單（保留品項選單，不重新載入）
+// ══════════════════════════════════════════════════════════
 function resetForm() {
-  document.getElementById('location').value = '';
-  document.getElementById('item').value = '';
-  document.getElementById('qty').value = '';
-  document.getElementById('cost').value = '';
-  document.getElementById('reason').value = '';
-  document.getElementById('reporter').value = '';
-  document.getElementById('note').value = '';
+  document.getElementById('location').value    = '';
+  document.getElementById('item').value        = '';
+  document.getElementById('qty').value         = '';
+  document.getElementById('cost').value        = '';
+  document.getElementById('reason').value      = '';
+  document.getElementById('reporter').value    = '';
+  document.getElementById('note').value        = '';
   document.getElementById('amount-display').textContent = '$0.00';
-  document.getElementById('unit-display').textContent = '— 請先選擇品項 —';
+  document.getElementById('unit-display').textContent   = '— 請先選擇品項 —';
   document.getElementById('photoPreview').style.display = 'none';
-  document.getElementById('photoInput').value = '';
-  photoBase64 = '';
+  document.getElementById('photoInput').value  = '';
+  document.getElementById('categoryBadge').classList.remove('show');
+  photoBase64   = '';
   photoFileName = '';
 }
 
+// ══════════════════════════════════════════════════════════
+//  Overlay / Toast
+// ══════════════════════════════════════════════════════════
 function showOverlay(type) {
-  const icon = document.getElementById('overlayIcon');
+  const icon  = document.getElementById('overlayIcon');
   const title = document.getElementById('overlayTitle');
-  const msg = document.getElementById('overlayMsg');
-  const btn = document.getElementById('overlayBtn');
+  const msg   = document.getElementById('overlayMsg');
+  const btn   = document.getElementById('overlayBtn');
+
   if (type === 'success') {
-    icon.textContent = '✅';
+    icon.textContent  = '✅';
     title.textContent = '送出成功！';
-    msg.textContent = '已成功送出廢品紀錄，謝謝你的回報 🙏';
-    btn.textContent = '再填一筆';
-    btn.className = 'overlay-btn ok';
+    msg.textContent   = '已成功送出廢品紀錄，謝謝你的回報 🙏';
+    btn.textContent   = '再填一筆';
+    btn.className     = 'overlay-btn ok';
   } else {
-    icon.textContent = '❌';
+    icon.textContent  = '❌';
     title.textContent = '送出失敗';
-    msg.textContent = '送出失敗，請重新送出或通知老闆。';
-    btn.textContent = '關閉';
-    btn.className = 'overlay-btn err';
+    msg.textContent   = '送出失敗，請重新送出或通知老闆。';
+    btn.textContent   = '關閉';
+    btn.className     = 'overlay-btn err';
   }
   document.getElementById('overlay').classList.add('show');
 }
@@ -717,7 +851,7 @@ function showToast(msg, type) {
   let t = document.querySelector('.toast');
   if (t) t.remove();
   t = document.createElement('div');
-  t.className = `toast ${type}`;
+  t.className   = `toast ${type}`;
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.classList.add('show'), 10);
