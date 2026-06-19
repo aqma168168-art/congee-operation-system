@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>中央廚房 員工打卡</title>
+<style>
+:root{
+  --or:#E8650A;--orl:#FDF0E6;
+  --gr:#1A7A4A;--grl:#E8F5EE;
+  --re:#C0392B;--rel:#FDECEA;
+  --pu:#7C3AED;--pul:#EDE9FE;
+  --gy:#F5F4F0;--tx:#1C1C1E;--txm:#6B6B70;
+  --bd:#E0DDD8;--wh:#FFFFFF;
+  --r:16px;--rs:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans TC',sans-serif;
+     background:var(--gy);color:var(--tx);min-height:100vh;padding-bottom:60px}
+
+.hdr{background:var(--or);color:#fff;padding:18px 20px 24px;text-align:center}
+.hdr-title{font-size:20px;font-weight:700;letter-spacing:1px}
+.hdr-clock{font-size:40px;font-weight:200;letter-spacing:2px;margin:8px 0 2px;
+           font-variant-numeric:tabular-nums}
+.hdr-date{font-size:13px;opacity:.88}
+
+.cfg-warn{background:#FF3B30;color:#fff;font-size:13px;padding:10px 16px;text-align:center;display:none}
+.cfg-warn.show{display:block}
+.off-bar{background:#FF9500;color:#fff;font-size:13px;padding:8px;text-align:center;display:none}
+.off-bar.show{display:block}
+
+.card{background:var(--wh);border-radius:var(--r);margin:14px 14px 0;
+      padding:18px 18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-label{font-size:11px;color:var(--txm);text-transform:uppercase;
+            letter-spacing:.8px;font-weight:700}
+
+.btn-add{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;
+         border:1.5px solid var(--or);border-radius:100px;
+         font-size:13px;font-weight:700;color:var(--or);background:var(--orl);
+         cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.btn-add:active{opacity:.7}
+
+.sel-wrap{position:relative}
+.sel-wrap::after{content:'▾';position:absolute;right:14px;top:50%;
+                 transform:translateY(-50%);color:var(--txm);font-size:16px;pointer-events:none}
+select{width:100%;height:52px;padding:0 42px 0 14px;
+       border:1.5px solid var(--bd);border-radius:var(--rs);
+       font-size:17px;color:var(--tx);background:var(--wh);
+       appearance:none;-webkit-appearance:none;outline:none;font-family:inherit}
+select:focus{border-color:var(--or)}
+.load-hint{font-size:13px;color:var(--txm);margin-top:10px;display:none;text-align:center}
+.load-hint.show{display:block}
+.err-hint{font-size:13px;color:var(--re);margin-top:10px;background:var(--rel);
+          border-radius:var(--rs);padding:10px 12px;display:none;white-space:pre-line}
+.err-hint.show{display:block}
+
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;
+       border-radius:100px;font-size:13px;font-weight:700;margin-top:6px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.b-none{background:#F0F0F0;color:var(--txm)}.b-none .dot{background:#CCC}
+.b-in{background:var(--grl);color:var(--gr)}.b-in .dot{background:var(--gr);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.sessions{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.session{background:var(--gy);border-radius:var(--rs);padding:10px 13px;
+         display:flex;align-items:center;justify-content:space-between;font-size:13px}
+.session .seg{display:flex;align-items:center;gap:6px}
+.session .time{font-weight:700;font-variant-numeric:tabular-nums}
+.session .arrow{color:var(--txm)}
+.session .dur{color:var(--or);font-weight:700;font-size:12px}
+.session.open .dur{color:var(--gr)}
+.session-empty{font-size:13px;color:var(--txm);text-align:center;padding:8px 0}
+
+.gps-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--txm);margin-top:12px}
+.gdot{width:7px;height:7px;border-radius:50%;background:#CCC;flex-shrink:0}
+.gdot.ok{background:var(--gr)}.gdot.fetching{background:var(--or);animation:pulse 1s infinite}
+
+.abtn{width:100%;height:58px;border:none;border-radius:var(--r);
+      font-size:18px;font-weight:700;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      transition:transform .1s,opacity .1s;font-family:inherit}
+.abtn:active{transform:scale(.97);opacity:.9}
+.abtn:disabled{opacity:.32;cursor:not-allowed;transform:none}
+.abtn-in{background:var(--or);color:#fff;margin-bottom:11px}
+.abtn-out{background:var(--gr);color:#fff}
+.abtn-icon{font-size:20px}
+.act-err{background:var(--rel);color:var(--re);border-radius:var(--rs);
+         padding:11px 14px;font-size:14px;margin-top:11px;display:none}
+.act-err.show{display:block}
+
+.spin{width:22px;height:22px;border:3px solid rgba(255,255,255,.3);
+      border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);
+         z-index:100;display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.rsheet{background:var(--wh);border-radius:24px 24px 0 0;width:100%;max-width:480px;
+        padding:12px 22px 36px;animation:up .28s ease}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.shandle{width:36px;height:4px;background:#DDD;border-radius:2px;margin:0 auto 18px}
+.rico{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-size:28px;margin:0 auto 14px}
+.rico.ok{background:var(--grl)}.rico.ng{background:var(--rel)}
+.rtitle{text-align:center;font-size:20px;font-weight:700;margin-bottom:4px}
+.rtitle.ok{color:var(--gr)}.rtitle.ng{color:var(--re)}
+.rsub{text-align:center;color:var(--txm);font-size:13px;margin-bottom:4px}
+.rinfo{background:var(--gy);border-radius:var(--rs);padding:13px 15px;margin:14px 0}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:14px}
+.rrow+.rrow{border-top:1px solid var(--bd)}
+.rlbl{color:var(--txm)}.rval{font-weight:700}
+.rclose{width:100%;height:50px;background:var(--tx);color:#fff;border:none;
+        border-radius:var(--r);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+.rclose:active{opacity:.8}
+
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);
+          z-index:200;display:none;align-items:flex-end;justify-content:center}
+.moverlay.show{display:flex}
+.msheet{background:var(--wh);border-radius:24px 24px 0 0;width:100%;max-width:480px;
+        padding:12px 22px 40px;animation:up .28s ease}
+.msheet h3{font-size:18px;font-weight:700;text-align:center;margin-bottom:4px}
+.msheet p{font-size:13px;color:var(--txm);text-align:center;margin-bottom:18px}
+.fld{margin-bottom:13px}
+.fld label{display:block;font-size:12px;color:var(--txm);font-weight:700;
+           margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
+.fld input{width:100%;height:48px;padding:0 13px;border:1.5px solid var(--bd);
+           border-radius:var(--rs);font-size:16px;color:var(--tx);font-family:inherit;outline:none}
+.fld input:focus{border-color:var(--or)}
+.fld-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.malert{border-radius:var(--rs);padding:10px 13px;font-size:13px;margin-top:8px;display:none}
+.malert.show{display:block}
+.malert.err{background:var(--rel);color:var(--re)}
+.malert.ok{background:var(--grl);color:var(--gr)}
+.mbtns{display:flex;gap:10px;margin-top:18px}
+.mbtn{flex:1;height:52px;border:none;border-radius:var(--rs);font-size:16px;
+      font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.mbtn:active{opacity:.8}
+.mbtn-cancel{background:var(--gy);color:var(--tx);flex:0 0 80px}
+.mbtn-ok{background:var(--or);color:#fff}
+</style>
+</head>
+<body>
+
+<div class="off-bar" id="offBar">⚠️ 目前離線，打卡需要網路連線</div>
+<div class="cfg-warn" id="cfgWarn">⚙️ 尚未設定 GAS 網址，請先完成部署設定</div>
+
+<div class="hdr">
+  <div class="hdr-title">🍳 中央廚房打卡系統</div>
+  <div class="hdr-clock" id="clock">--:--:--</div>
+  <div class="hdr-date" id="clockDate">載入中...</div>
+</div>
+
+<!-- 選擇員工 -->
+<div class="card">
+  <div class="card-hdr">
+    <span class="card-label">選擇員工姓名</span>
+    <button class="btn-add" id="btnAddMember" onclick="openAddMember()">＋ 新增人員</button>
+  </div>
+  <div class="sel-wrap">
+    <select id="empSel" onchange="onEmpChange()">
+      <option value="">── 載入中，請稍候 ──</option>
+    </select>
+  </div>
+  <div class="load-hint show" id="loadHint">🔄 正在載入員工名單…</div>
+  <div class="err-hint" id="errHint"></div>
+</div>
+
+<!-- 今日狀態 -->
+<div class="card" id="statusCard" style="display:none">
+  <div class="card-label">今日出勤狀況</div>
+  <div class="badge b-none" id="statusBadge">
+    <span class="dot"></span><span id="statusTxt">尚未打卡</span>
+  </div>
+
+  <div class="sessions" id="sessionList"></div>
+
+  <div class="gps-row"><div class="gdot" id="gpsDot"></div><span id="gpsTxt">GPS 定位中…</span></div>
+</div>
+
+<!-- 打卡按鈕 -->
+<div class="card" id="actionCard" style="display:none">
+  <div class="card-label" style="margin-bottom:14px">打卡操作</div>
+  <button class="abtn abtn-in" id="btnIn" onclick="doClock('in')">
+    <span class="abtn-icon">🟠</span> 上班打卡
+  </button>
+  <button class="abtn abtn-out" id="btnOut" onclick="doClock('out')">
+    <span class="abtn-icon">🟢</span> 下班打卡
+  </button>
+  <div class="act-err" id="actErr"></div>
+</div>
+
+<!-- 結果 sheet -->
+<div class="overlay" id="overlay" onclick="closeResult()">
+  <div class="rsheet" onclick="event.stopPropagation()">
+    <div class="shandle"></div>
+    <div class="rico" id="rico">✅</div>
+    <div class="rtitle" id="rtitle">打卡成功</div>
+    <div class="rsub" id="rsub"></div>
+    <div class="rinfo" id="rinfo"></div>
+    <button class="rclose" onclick="closeResult()">確定</button>
+  </div>
+</div>
+
+<!-- 新增人員 modal -->
+<div class="moverlay" id="addModal" onclick="modalBgClick(event)">
+  <div class="msheet">
+    <div class="shandle"></div>
+    <h3>新增人員</h3>
+    <p>填寫姓名即可，時薪可先留空由管理者補填</p>
+    <div class="fld">
+      <label>姓名 *</label>
+      <input type="text" id="nName" placeholder="輸入員工姓名" maxlength="20" autocomplete="off">
+    </div>
+    <div class="fld-row">
+      <div class="fld">
+        <label>平日時薪（元）</label>
+        <input type="number" id="nWd" placeholder="例：200" min="0">
+      </div>
+      <div class="fld">
+        <label>假日時薪（元）</label>
+        <input type="number" id="nHd" placeholder="例：266" min="0">
+      </div>
+    </div>
+    <div class="malert" id="mAlert"></div>
+    <div class="mbtns">
+      <button class="mbtn mbtn-cancel" onclick="closeAddMember()">取消</button>
+      <button class="mbtn mbtn-ok" id="btnOk" onclick="submitAdd()">新增</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// ★ 部署後請貼上你的 Google Apps Script 網址
+// ════════════════════════════════════════
+const GAS = 'https://script.google.com/macros/s/AKfycbyF8W5nES2rEjboDv7uEgabFd2B2p6BPMJvkVul2dQ3E2H_vL2OyFSjkDmNWd4FqMkS/exec';
+// ════════════════════════════════════════
+
+let gps = null, hasOpen = false, openClockIn = null, openClockInDate = null;
+const dev = (navigator.platform||'') + '|' + navigator.userAgent.slice(0,80);
+
+if (!GAS || GAS === 'YOUR_GAS_WEB_APP_URL_HERE') {
+  document.getElementById('cfgWarn').classList.add('show');
+}
+
+const days = ['日','一','二','三','四','五','六'];
+function tick() {
+  const n = new Date();
+  document.getElementById('clock').textContent = n.toTimeString().slice(0,8);
+  document.getElementById('clockDate').textContent =
+    n.getFullYear()+'年'+(n.getMonth()+1)+'月'+n.getDate()+'日（週'+days[n.getDay()]+'）';
+}
+setInterval(tick,1000); tick();
+
+const offBar = document.getElementById('offBar');
+window.addEventListener('online',  ()=>offBar.classList.remove('show'));
+window.addEventListener('offline', ()=>offBar.classList.add('show'));
+if (!navigator.onLine) offBar.classList.add('show');
+
+function startGPS() {
+  const dot = document.getElementById('gpsDot'), txt = document.getElementById('gpsTxt');
+  dot.className='gdot fetching'; txt.textContent='GPS 定位中…';
+  if (!navigator.geolocation){txt.textContent='GPS 不支援';return;}
+  navigator.geolocation.getCurrentPosition(
+    p=>{
+      gps={lat:p.coords.latitude,lng:p.coords.longitude,acc:Math.round(p.coords.accuracy)};
+      dot.className='gdot ok'; txt.textContent=`GPS 已定位 (±${gps.acc}m)`;
+    },
+    ()=>{dot.className='gdot';txt.textContent='GPS 定位失敗（不影響打卡）';},
+    {timeout:8000,maximumAge:60000}
+  );
+}
+
+function twDate() {
+  return new Date().toLocaleDateString('zh-TW',{timeZone:'Asia/Taipei',
+    year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
+}
+function twTime() {
+  return new Date().toLocaleTimeString('zh-TW',{timeZone:'Asia/Taipei',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+}
+
+async function apiGet(qs) {
+  const r = await fetch(GAS+'?'+qs);
+  return r.json();
+}
+async function apiPost(body) {
+  const r = await fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify(body)});
+  return r.json();
+}
+
+async function loadEmps() {
+  const sel = document.getElementById('empSel');
+  const hint = document.getElementById('loadHint');
+  const errH = document.getElementById('errHint');
+  hint.classList.add('show'); errH.classList.remove('show');
+
+  try {
+    const d = await apiGet('action=getEmployees');
+    hint.classList.remove('show');
+    sel.innerHTML = '<option value="">── 請選擇姓名 ──</option>';
+    if (d.success && d.employees && d.employees.length > 0) {
+      d.employees.forEach(e => {
+        const o = document.createElement('option');
+        o.value = e.name; o.textContent = e.name;
+        sel.appendChild(o);
+      });
+    } else {
+      errH.textContent = '⚠️ 員工名單是空的，請先透過「＋ 新增人員」加入人員，或請管理者在後台新增。';
+      errH.classList.add('show');
+    }
+  } catch(e) {
+    hint.classList.remove('show');
+    errH.textContent = '❌ 無法連線到伺服器，請確認：\n1. GAS 網址是否已正確填入\n2. 網路是否正常\n3. GAS 是否已部署為「任何人」可存取';
+    errH.classList.add('show');
+    sel.innerHTML = '<option value="">── 載入失敗，可新增人員 ──</option>';
+  }
+}
+
+async function onEmpChange() {
+  const name = document.getElementById('empSel').value;
+  if (!name) {
+    document.getElementById('statusCard').style.display='none';
+    document.getElementById('actionCard').style.display='none';
+    return;
+  }
+  document.getElementById('statusCard').style.display='block';
+  document.getElementById('actionCard').style.display='block';
+  startGPS();
+  await loadStatus(name);
+  updateBtns();
+}
+
+async function loadStatus(name) {
+  document.getElementById('statusTxt').textContent='查詢中…';
+  try {
+    const d = await apiGet('action=getTodayStatus&name='+encodeURIComponent(name));
+    hasOpen = d.hasOpenRecord || false;
+    openClockIn = d.openClockIn || null;
+    openClockInDate = d.openClockInDate || null;
+    renderStatus(d.todayRecords || []);
+  } catch(e) {
+    hasOpen = false; openClockIn = null; openClockInDate = null;
+    renderStatus([]);
+  }
+}
+
+function renderStatus(todayRecords) {
+  const badge = document.getElementById('statusBadge');
+  const txt   = document.getElementById('statusTxt');
+  const list  = document.getElementById('sessionList');
+
+  if (hasOpen) {
+    badge.className = 'badge b-in';
+    txt.textContent = '上班中';
+  } else if (todayRecords.length > 0) {
+    badge.className = 'badge b-none';
+    txt.textContent = '今日已打卡 ' + todayRecords.length + ' 組';
+  } else {
+    badge.className = 'badge b-none';
+    txt.textContent = '尚未打卡';
+  }
+
+  list.innerHTML = '';
+  if (todayRecords.length === 0 && !hasOpen) {
+    list.innerHTML = '<div class="session-empty">今日尚無打卡紀錄</div>';
+    return;
+  }
+
+  todayRecords.forEach(s => {
+    const isOpen = s.clockIn && !s.clockOut;
+    const div = document.createElement('div');
+    div.className = 'session' + (isOpen ? ' open' : '');
+    div.innerHTML = `
+      <div class="seg">
+        <span class="time">${s.clockIn || '--:--'}</span>
+        <span class="arrow">→</span>
+        <span class="time">${s.clockOut || (isOpen ? '進行中' : '--:--')}</span>
+      </div>
+      <span class="dur">${s.label || ''}</span>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function updateBtns() {
+  document.getElementById('btnIn').disabled  =  hasOpen;
+  document.getElementById('btnOut').disabled = !hasOpen;
+}
+
+async function doClock(type) {
+  const name = document.getElementById('empSel').value;
+  if (!name) return showActErr('請先選擇員工姓名');
+  clearActErr();
+  if (type==='in'  &&  hasOpen) return showActErr('上一筆尚未下班，請先完成下班打卡');
+  if (type==='out' && !hasOpen) return showActErr('目前沒有尚未下班的紀錄，無法打下班卡');
+
+  const btn = document.getElementById(type==='in'?'btnIn':'btnOut');
+  const orig = btn.innerHTML;
+  btn.innerHTML='<div class="spin"></div>'; btn.disabled=true;
+
+  const dt = twDate(), tm = twTime();
+  try {
+    const d = await apiPost({
+      action: type==='in' ? 'clockIn' : 'clockOut',
+      name, date:dt, time:tm,
+      gps: gps?`${gps.lat.toFixed(6)},${gps.lng.toFixed(6)}`:'',
+      device: dev
+    });
+    btn.innerHTML=orig;
+    if (d.success) {
+      await loadStatus(name);
+      updateBtns();
+      showResult(true,{name,date:dt,time:tm,
+        type:type==='in'?'上班打卡':'下班打卡',
+        msg:d.message||'打卡成功！'});
+    } else {
+      btn.disabled=false; showActErr(d.message||'打卡失敗，請重試');
+    }
+  } catch(e) {
+    btn.innerHTML=orig; btn.disabled=false; showActErr('網路錯誤，請確認網路後重試');
+  }
+}
+
+function showResult(ok,info) {
+  document.getElementById('rico').textContent    = ok?'✅':'❌';
+  document.getElementById('rico').className      = 'rico '+(ok?'ok':'ng');
+  document.getElementById('rtitle').textContent  = ok?'打卡成功！':'打卡失敗';
+  document.getElementById('rtitle').className    = 'rtitle '+(ok?'ok':'ng');
+  document.getElementById('rsub').textContent    = info.msg||'';
+  document.getElementById('rinfo').innerHTML     =
+    row('員工姓名',info.name)+row('打卡類型',info.type)+
+    row('日期',info.date)+row('時間',info.time);
+  document.getElementById('overlay').classList.add('show');
+}
+function row(l,v){return`<div class="rrow"><span class="rlbl">${l}</span><span class="rval">${v}</span></div>`}
+function closeResult(){document.getElementById('overlay').classList.remove('show')}
+function showActErr(m){const e=document.getElementById('actErr');e.textContent='⚠️ '+m;e.classList.add('show');e.scrollIntoView({behavior:'smooth',block:'nearest'})}
+function clearActErr(){document.getElementById('actErr').classList.remove('show')}
+
+function openAddMember() {
+  ['nName','nWd','nHd'].forEach(id=>document.getElementById(id).value='');
+  setAlert('','');
+  document.getElementById('addModal').classList.add('show');
+  setTimeout(()=>document.getElementById('nName').focus(),300);
+}
+function closeAddMember(){document.getElementById('addModal').classList.remove('show')}
+function modalBgClick(e){if(e.target===document.getElementById('addModal'))closeAddMember()}
+function setAlert(msg,cls){
+  const el=document.getElementById('mAlert');
+  if(!msg){el.classList.remove('show');return;}
+  el.textContent=msg; el.className='malert '+cls+' show';
+}
+
+async function submitAdd() {
+  const name = document.getElementById('nName').value.trim();
+  const wd   = document.getElementById('nWd').value;
+  const hd   = document.getElementById('nHd').value;
+  if (!name) return setAlert('請輸入員工姓名','err');
+
+  const btn = document.getElementById('btnOk');
+  btn.disabled=true; btn.textContent='新增中…';
+
+  try {
+    const d = await apiPost({
+      action:'addEmployee', name,
+      weekdayRate: wd?Number(wd):0,
+      holidayRate: hd?Number(hd):0,
+      admin:'員工自助新增'
+    });
+    if (d.success) {
+      setAlert('✅ 已新增「'+name+'」！','ok');
+      await loadEmps();
+      document.getElementById('empSel').value = name;
+      setTimeout(()=>{ closeAddMember(); onEmpChange(); },1200);
+    } else {
+      setAlert(d.message||'新增失敗，請重試','err');
+    }
+  } catch(e) { setAlert('網路錯誤，請重試','err'); }
+  btn.disabled=false; btn.textContent='新增';
+}
+document.getElementById('nName').addEventListener('keydown',e=>{if(e.key==='Enter')submitAdd()});
+
+loadEmps();
+</script>
+</body>
+</html>
