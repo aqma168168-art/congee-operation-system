@@ -208,20 +208,10 @@ select:focus{border-color:var(--or)}
   <div class="msheet">
     <div class="shandle"></div>
     <h3>新增人員</h3>
-    <p>填寫姓名即可，時薪可先留空由管理者補填</p>
+    <p>輸入姓名即可加入打卡名單，時薪由老闆在後台設定</p>
     <div class="fld">
       <label>姓名 *</label>
       <input type="text" id="nName" placeholder="輸入員工姓名" maxlength="20" autocomplete="off">
-    </div>
-    <div class="fld-row">
-      <div class="fld">
-        <label>平日時薪（元）</label>
-        <input type="number" id="nWd" placeholder="例：200" min="0">
-      </div>
-      <div class="fld">
-        <label>假日時薪（元）</label>
-        <input type="number" id="nHd" placeholder="例：266" min="0">
-      </div>
     </div>
     <div class="malert" id="mAlert"></div>
     <div class="mbtns">
@@ -235,7 +225,7 @@ select:focus{border-color:var(--or)}
 // ════════════════════════════════════════
 // ★ 部署後請貼上你的 Google Apps Script 網址
 // ════════════════════════════════════════
-const GAS = 'https://script.google.com/macros/s/AKfycbyF8W5nES2rEjboDv7uEgabFd2B2p6BPMJvkVul2dQ3E2H_vL2OyFSjkDmNWd4FqMkS/exec';
+const GAS = 'YOUR_GAS_WEB_APP_URL_HERE';
 // ════════════════════════════════════════
 
 let gps = null, hasOpen = false, openClockIn = null, openClockInDate = null;
@@ -442,7 +432,7 @@ function showActErr(m){const e=document.getElementById('actErr');e.textContent='
 function clearActErr(){document.getElementById('actErr').classList.remove('show')}
 
 function openAddMember() {
-  ['nName','nWd','nHd'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('nName').value='';
   setAlert('','');
   document.getElementById('addModal').classList.add('show');
   setTimeout(()=>document.getElementById('nName').focus(),300);
@@ -457,8 +447,6 @@ function setAlert(msg,cls){
 
 async function submitAdd() {
   const name = document.getElementById('nName').value.trim();
-  const wd   = document.getElementById('nWd').value;
-  const hd   = document.getElementById('nHd').value;
   if (!name) return setAlert('請輸入員工姓名','err');
 
   const btn = document.getElementById('btnOk');
@@ -467,15 +455,15 @@ async function submitAdd() {
   try {
     const d = await apiPost({
       action:'addEmployee', name,
-      weekdayRate: wd?Number(wd):0,
-      holidayRate: hd?Number(hd):0,
+      weekdayRate: 0,
+      holidayRate: 0,
       admin:'員工自助新增'
     });
     if (d.success) {
-      setAlert('✅ 已新增「'+name+'」！','ok');
+      setAlert('✅ 已新增「'+name+'」！時薪請通知老闆在後台設定。','ok');
       await loadEmps();
       document.getElementById('empSel').value = name;
-      setTimeout(()=>{ closeAddMember(); onEmpChange(); },1200);
+      setTimeout(()=>{ closeAddMember(); onEmpChange(); },1800);
     } else {
       setAlert(d.message||'新增失敗，請重試','err');
     }
